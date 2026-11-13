@@ -152,7 +152,10 @@ private fun InCallScreen() {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(contact ?: "شماره ناشناس", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
-            Text(if (contact == null) raw.ifBlank { "شماره نمایش داده نمی‌شود" } else "مخاطب ذخیره‌شده", color = Color.LightGray, fontSize = 14.sp)
+            Text(if (contact == null) raw.ifBlank { "شماره ناشناس" } else "مخاطب ذخیره‌شده", color = Color.LightGray, fontSize = 14.sp)
+            if (state == Call.STATE_ACTIVE || held) {
+                Text(String.format("%02d:%02d", elapsedSeconds / 60, elapsedSeconds % 60), color = Color(0xFF35E7FF), fontSize = 18.sp)
+            }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp), verticalAlignment = Alignment.CenterVertically) {
             CallControl(if (muted) Icons.Default.MicOff else Icons.Default.Mic, if (muted) "وصل میکروفن" else "بی‌صدا", muted) {
