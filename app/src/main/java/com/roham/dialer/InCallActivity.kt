@@ -3,6 +3,8 @@ package com.roham.dialer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.telecom.Call
 import android.telecom.CallAudioState
 import android.telecom.InCallService
@@ -17,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
+import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Pause
@@ -32,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
@@ -126,6 +130,14 @@ private fun InCallScreen() {
     val contact = remember(raw) { resolveName(ctx, raw) }
     val incoming = state == Call.STATE_RINGING
     val held = state == Call.STATE_HOLDING
+    var showKeypad by remember { mutableStateOf(false) }
+    var elapsedSeconds by remember(call) { mutableIntStateOf(0) }
+    LaunchedEffect(call, state) {
+        while (state == Call.STATE_ACTIVE) {
+            delay(1000)
+            elapsedSeconds++
+        }
+    }
 
     Column(
         Modifier.fillMaxSize()
@@ -152,6 +164,25 @@ private fun InCallScreen() {
             CallControl(if (held) Icons.Default.PlayArrow else Icons.Default.Pause, if (held) "ادامه" else "انتظار", held) {
                 RohamInCallService.toggleHold()
             }
+            CallControl(Icons.Default.Dialpad, "صفحه‌کلید", showKeypad) {
+                showKeypad = !showKeypad
+            }
+        }
+        if (showKeypad) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#").chunked(3).forEach { line ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        line.forEach { digit ->
+                            Box(Modifier.size(54.dp).background(Color(0xFF202941), CircleShape).clickable {
+                                call?.playDtmfTone(digit.first())
+                                Handler(Looper.getMainLooper()).postDelayed({ call?.stopDtmfTone() }, 140)
+                            }, contentAlignment = Alignment.Center) {
+                                Text(digit, color = Color.White, fontSize = 20.sp)
+                            }
+                        }
+                    }
+                }
+            }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
             if (incoming) {
@@ -159,7 +190,7 @@ private fun InCallScreen() {
                     call?.answer(VideoProfile.STATE_AUDIO_ONLY)
                 }
                 RoundAction(Color(0xFFFF3F70), Icons.Default.CallEnd, "رد تماس") {
-                    call?.disconnect()
+                    call?.reject(false, null)
                     (ctx as? ComponentActivity)?.finish()
                 }
             } else {
