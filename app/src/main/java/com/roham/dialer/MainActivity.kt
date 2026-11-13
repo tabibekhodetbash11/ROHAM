@@ -125,7 +125,7 @@ class MainActivity : ComponentActivity() {
                         BasicTextField(query, { query = it }, Modifier.fillMaxWidth().background(Panel, RoundedCornerShape(14.dp)).padding(16.dp), textStyle = TextStyle(color = Color.White, fontSize = 16.sp), decorationBox = { inner -> if (query.isEmpty()) Text("جستجوی نام مخاطب", color = Color.Gray); inner() })
                         Spacer(Modifier.height(12.dp))
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            items(people.filter { it.name.contains(query, true) }) { person ->
+                            items(people.filter { it.name.contains(query, true) || it.number.contains(query) }) { person ->
                                 Row(Modifier.fillMaxWidth().background(Panel, RoundedCornerShape(15.dp)).clickable { placeCall(person.number) }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Box(Modifier.size(42.dp).background(Brush.linearGradient(listOf(Cyan.copy(.3f), Purple.copy(.35f))), CircleShape), contentAlignment = Alignment.Center) { Text(person.name.take(1), color = Cyan, fontWeight = FontWeight.Bold) }
                                     Spacer(Modifier.width(12.dp))
